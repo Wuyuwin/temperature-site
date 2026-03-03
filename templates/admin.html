@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block content %}
+<section>
+  <h4>1) 編輯現有員工（匯入 Excel）</h4>
+
+  {% if msg %}
+    <article style="border-left:4px solid #0a0; padding:.75rem;">{{ msg }}</article>
+  {% endif %}
+  {% if error %}
+    <article style="border-left:4px solid #c00; padding:.75rem;">{{ error }}</article>
+  {% endif %}
+
+  <div class="row">
+    <button type="button" onclick="document.getElementById('importDlg').showModal()">匯入 Excel</button>
+    <a role="button" class="secondary" href="/admin/audit.xlsx">匯出今日已填/未填（Excel）</a>
+  </div>
+
+  <dialog id="importDlg">
+    <article>
+      <header class="row" style="justify-content:space-between;">
+        <strong>匯入員工 Excel</strong>
+        <button aria-label="Close" rel="prev" onclick="document.getElementById('importDlg').close()"></button>
+      </header>
+
+      <p>請上傳 .xlsx 檔案，第一列需包含欄位標題：<code>員工名字</code></p>
+
+      <form method="post" action="/admin/employees/import" enctype="multipart/form-data">
+        <input type="file" name="file" accept=".xlsx" required>
+        <div class="row" style="margin-top:.75rem;">
+          <button type="submit">開始匯入</button>
+          <button type="button" class="secondary" onclick="document.getElementById('importDlg').close()">取消</button>
+        </div>
+      </form>
+    </article>
+  </dialog>
+<section>
+
+<section>
+  <h4>2) 今日已填 / 未填（{{ today_label }}）</h4>
+  <p>
+    已填：<strong>{{ filled_count }}</strong> 人　
+    未填：<strong>{{ missing_count }}</strong> 人　
+    （在職員工總數：{{ employees_active_count }}）
+  </p>
+
+  <form method="get" class="row" style="margin:.75rem 0 1rem 0;">
+    <input type="hidden" name="page" value="1">
+    <label style="margin:0;">
+      每頁顯示
+      <select name="per_page" onchange="this.form.submit()">
+        {% for n in [10,20,30] %}
+          <option value="{{ n }}" {{ 'selected' if per_page==n else '' }}>{{ n }}</option>
+        {% endfor %}
+      </select>
+    </label>
+  </form>
+
+  <nav aria-label="pagination" style="margin:.25rem 0 1rem 0; display:flex; gap:.5rem; flex-wrap: wrap;">
+    {% if page > 1 %}
+      <a role="button" class="secondary" href="?page=1&per_page={{ per_page }}">&laquo; 第一頁</a>
+      <a role="button" class="secondary" href="?page={{ page-1 }}&per_page={{ per_page }}">上一頁</a>
+    {% endif %}
+    <span style="align-self:center;">第 {{ page }} / {{ total_pages }} 頁</span>
+    {% if page < total_pages %}
+      <a role="button" class="secondary" href="?page={{ page+1 }}&per_page={{ per_page }}">下一頁</a>
+      <a role="button" class="secondary" href="?page={{ total_pages }}&per_page={{ per_page }}">最後一頁 &raquo;</a>
+    {% endif %}
+  </nav>
+
+  <div class="overflow-auto">
+    <table>
+      <thead>
+        <tr>
+          <th>姓名</th>
+          <th>狀態</th>
+          <th>科別</th>
+          <th>上班時間</th>
+          <th>症狀</th>
+          <th>備註</th>
+          <th>體溫(℃)</th>
+          <th>時間(UTC)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in audit_page %}
+          <tr>
+            <td>{{ r.name }}</td>
+            <td>{{ r.status }}</td>
+            <td>{{ r.location or '-' }}</td>
+            <td>{{ r.working_time or '-' }}</td>
+            <td class="wrap">{{ r.symptom or '-' }}</td>
+            <td class="wrap">{{ r.note or '-' }}</td>
+            <td>
+              {% if r.temperature_c is not none and r.temperature_c != '' %}
+                {{ "%.1f"|format(r.temperature_c) }}
+              {% else %}
+                -
+              {% endif %}
+            </td>
+            <td class="wrap">{{ r.timestamp_utc or '-' }}</td>
+          </tr>
+        {% endfor %}
+        {% if audit_page|length == 0 %}
+          <tr><td colspan="8">（本頁沒有資料）</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+
+  <nav aria-label="pagination" style="margin-top:1rem; display:flex; gap:.5rem; flex-wrap: wrap;">
+    {% if page > 1 %}
+      <a role="button" class="secondary" href="?page=1&per_page={{ per_page }}">&laquo; 第一頁</a>
+      <a role="button" class="secondary" href="?page={{ page-1 }}&per_page={{ per_page }}">上一頁</a>
+    {% endif %}
+    <span style="align-self:center;">第 {{ page }} / {{ total_pages }} 頁</span>
+    {% if page < total_pages %}
+      <a role="button" class="secondary" href="?page={{ page+1 }}&per_page={{ per_page }}">下一頁</a>
+      <a role="button" class="secondary" href="?page={{ total_pages }}&per_page={{ per_page }}">最後一頁 &raquo;</a>
+    {% endif %}
+  </nav>
+</section>
+{% endblock %}

@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>體溫檢測系統</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+  <style>
+    .chip { display:inline-block; padding:.15rem .5rem; border-radius:.5rem; background:#eee; margin:.1rem; font-size:.85rem;}
+    .wrap { word-break: break-all; }
+    table { font-size: .95rem; }
+    .row { display:flex; gap:.5rem; flex-wrap:wrap; align-items:center; }
+    dialog article { margin:0; }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <header>
+      <h2>體溫檢測系統</h2>
+      <nav class="row">
+        <a href="/">填寫表格</a>
+        <a href="/admin">後台</a>
+      </nav>
+    </header>
+    {% block content %}{% endblock %}
+    <footer><small>© Temperature</small></footer>
+  </main>
+</body>
+</html>

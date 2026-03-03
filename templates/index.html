@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block content %}
+<section>
+  {% if msg %}
+    <article style="border-left:4px solid #0a0; padding:.75rem;">{{ msg }}</article>
+  {% endif %}
+  {% if error %}
+    <article style="border-left:4px solid #c00; padding:.75rem;">{{ error }}</article>
+  {% endif %}
+
+  <form action="/submit" method="post">
+    <div class="grid">
+      <label>姓名（必填）
+        <input type="text" name="person_name" maxlength="100" required placeholder="例如：王小明">
+      </label>
+
+      <label>科別（必填）
+        <select name="location" required>
+          <option value="">-- 請選擇 --</option>
+          <option>一堂</option><option>二堂</option><option>三堂</option>
+          <option>養護堂</option><option>保健組</option><option>秘書室</option>
+          <option>輔導組</option><option>家本部</option><option>替代役</option>
+        </select>
+      </label>
+
+      <label>上班時間（必填）
+        <select name="working_time" required>
+          <option value="">-- 請選擇 --</option>
+          <option>早班</option><option>日班</option><option>中班</option><option>晚班</option>
+        </select>
+      </label>
+
+      <label>體溫（℃）（必填）
+        <input type="number" step="0.1" min="34.0" max="42.0" name="temperature_c" required placeholder="例如：36.8">
+      </label>
+    </div>
+
+    <fieldset>
+      <legend>症狀（可多選）</legend>
+      {% for v,l in [('0','無症狀'),('1','咳嗽'),('2','喉嚨痛'),('3','流鼻水'),('4','發燒'),('5','腹瀉'),('6','皮疹'),('7','嗅覺異常'),('8','味覺異常')] %}
+        <label><input type="checkbox" name="symptom" value="{{v}}"> {{l}}</label>
+      {% endfor %}
+    </fieldset>
+
+    <label>備註
+      <textarea name="note" maxlength="300" rows="2" placeholder="其他需要說明的事項"></textarea>
+    </label>
+
+    <button type="submit">送出</button>
+
+    <article>
+      <h4>手機掃描快速開啟</h4>
+      <p>請先用電腦以「電腦IP:Port」開此頁，再用手機掃描：</p>
+      <img src="/qr.png" alt="QR Code" style="max-width:240px;">
+      <p><small>連結：{{ request.url_root }}</small></p>
+    </article>
+    
+  </form>
+</section>
+{% endblock %}
