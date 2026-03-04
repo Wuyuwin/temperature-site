@@ -335,7 +335,7 @@ def export_audit_xlsx():
 
     wb = Workbook()
     ws = wb.active
-    ws.title = f"稽核_{date_label}"
+    ws.title = "稽核"
 
     headers = ["姓名", "狀態", "科別", "上班時間", "症狀", "備註", "體溫(℃)", "時間(UTC)"]
     ws.append(headers)
