@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 <section>
-  <h4>1) 編輯現有員工（匯入 Excel）</h4>
+  <h4> 編輯現有員工（匯入 Excel）</h4>
 
   {% if msg %}
     <article style="border-left:4px solid #0a0; padding:.75rem;">{{ msg }}</article>
@@ -12,7 +12,6 @@
 
   <div class="row">
     <button type="button" onclick="document.getElementById('importDlg').showModal()">匯入 Excel</button>
-    <a role="button" class="secondary" href="/admin/audit.xlsx">匯出今日已填/未填（Excel）</a>
   </div>
 
   <dialog id="importDlg">
@@ -36,7 +35,27 @@
 <section>
 
 <section>
-  <h4>2) 今日已填 / 未填（{{ today_label }}）</h4>
+  <form method="get">
+    <label>日期：</label>
+    <input
+      type="date"
+      name="date"
+      value="{{ selected_date }}"
+      style="width:200px;"
+      onchange="this.form.submit()"
+    >
+    
+    <h4>
+      已填 / 未填
+      <a
+        role="button"
+        class="secondary"
+        href="/admin/audit.xlsx?date={{ selected_date }}"
+      >
+        匯出 {{ selected_date }} 已填/未填（Excel）
+      </a>
+    </h4>
+  </form>
   <p>
     已填：<strong>{{ filled_count }}</strong> 人　
     未填：<strong>{{ missing_count }}</strong> 人　
