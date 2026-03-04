@@ -12,7 +12,7 @@
 
 ## Screenshot
 
-### Temperature Form
+### Temperature Form 
 ![Temperature Form](screenshots/form.png)
 
 ### Admin Dashboard
