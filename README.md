@@ -10,6 +10,14 @@
 ## 後台匯出
 - /admin/audit.xlsx：匯出今日已填/未填（Excel）
 
+## Screenshot
+
+### Temperature Form
+![Temperature Form](screenshots/form.png)
+
+### Admin Dashboard
+![Admin Dashboard](screenshots/admin.png)
+
 ## 啟動
 ```bash
 pip install -r requirements.txt
