@@ -74,31 +74,43 @@ def requires_auth(f):
         return f(*args, **kwargs)
     return wrapper
 
-def _today_range_utc():
-    # Today in APP_TZ, convert to UTC range [start, end)
-    # On some Windows Python installs, IANA tz database may be missing unless tzdata is installed.
+def _date_range_utc(selected_date=None):
     if ZoneInfo is None:
-        now = datetime.now(timezone.utc)
-        start = datetime(now.year, now.month, now.day, tzinfo=timezone.utc)
+        if selected_date:
+            day = datetime.strptime(selected_date, "%Y-%m-%d").date()
+        else:
+            day = datetime.now(timezone.utc).date()
+
+        start = datetime(day.year, day.month, day.day, tzinfo=timezone.utc)
         end = start + timedelta(days=1)
-        return start, end, start.date().isoformat()
+        return start, end, day.isoformat()
 
     try:
         tz = ZoneInfo(APP_TZ)
     except ZoneInfoNotFoundError:
-        # Fallback to UTC if timezone data not found
-        now = datetime.now(timezone.utc)
-        start = datetime(now.year, now.month, now.day, tzinfo=timezone.utc)
-        end = start + timedelta(days=1)
-        return start, end, start.date().isoformat()
+        if selected_date:
+            day = datetime.strptime(selected_date, "%Y-%m-%d").date()
+        else:
+            day = datetime.now(timezone.utc).date()
 
-    now_local = datetime.now(tz)
-    start_local = datetime(now_local.year, now_local.month, now_local.day, tzinfo=tz)
+        start = datetime(day.year, day.month, day.day, tzinfo=timezone.utc)
+        end = start + timedelta(days=1)
+        return start, end, day.isoformat()
+
+    # timezone version
+    if selected_date:
+        day = datetime.strptime(selected_date, "%Y-%m-%d").date()
+        start_local = datetime(day.year, day.month, day.day, tzinfo=tz)
+    else:
+        now_local = datetime.now(tz)
+        start_local = datetime(now_local.year, now_local.month, now_local.day, tzinfo=tz)
+
     end_local = start_local + timedelta(days=1)
+
     start_utc = start_local.astimezone(timezone.utc)
     end_utc = end_local.astimezone(timezone.utc)
-    return start_utc, end_utc, now_local.date().isoformat()
 
+    return start_utc, end_utc, start_local.date().isoformat()
 
 @app.get("/")
 def index():
@@ -153,8 +165,8 @@ def _load_employees():
         active_count = conn.execute(text("SELECT COUNT(*) FROM employees WHERE active=1")).scalar_one()
     return employees, active_count
 
-def _load_today_audit():
-    start_utc, end_utc, today_label = _today_range_utc()
+def _load_date_audit(selected_date=None):
+    start_utc, end_utc, date_label = _date_range_utc(selected_date)
     start_s = start_utc.isoformat()
     end_s = end_utc.isoformat()
 
@@ -214,11 +226,12 @@ def _load_today_audit():
         ),
         reverse=True
     )
-    return audit_rows, filled_count, missing_count, today_label
+    return audit_rows, filled_count, missing_count, date_label
 
 @app.get("/admin")
 @requires_auth
 def admin_home():
+    selected_date = (request.args.get("date") or "").strip() or None
     try:
         per_page = int(request.args.get("per_page", 10))
     except Exception:
@@ -236,7 +249,7 @@ def admin_home():
     offset = (page - 1) * per_page
 
     employees, active_count = _load_employees()
-    audit_rows, filled_count, missing_count, today_label = _load_today_audit()
+    audit_rows, filled_count, missing_count, date_label = _load_date_audit(selected_date)
 
     total = len(audit_rows)
     total_pages = (total + per_page - 1) // per_page if total else 1
@@ -250,7 +263,8 @@ def admin_home():
         audit_page=audit_page,
         filled_count=filled_count,
         missing_count=missing_count,
-        today_label=today_label,
+        date_label=date_label,
+        selected_date=(selected_date or date_label),
         page=page,
         per_page=per_page,
         total_pages=total_pages,
@@ -316,7 +330,8 @@ def export_audit_xlsx():
     from io import BytesIO
     from datetime import datetime
 
-    audit_rows, filled_count, missing_count, today_label = _load_today_audit()
+    selected_date = (request.args.get("date") or "").strip() or None
+    audit_rows, filled_count, missing_count, date_label = _load_date_audit(selected_date)
 
     wb = Workbook()
     ws = wb.active
@@ -343,7 +358,7 @@ def export_audit_xlsx():
 
     bio = BytesIO()
     wb.save(bio); bio.seek(0)
-    filename = f"audit_{today_label}.xlsx"
+    filename = f"audit_{date_label}.xlsx"
     return Response(
         bio.read(),
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
