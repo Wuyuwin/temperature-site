@@ -34,6 +34,17 @@
   </dialog>
 <section>
 
+<style>
+  /* 未填：紅色 + 淡紅底 */
+  tr.missing-row td {
+    color: #d84d4d;
+    font-weight: 700;
+  }
+  tr.missing-row {
+    background: #fff1f1;
+  }
+</style>
+
 <section>
   <form method="get">
     <label>日期：</label>
@@ -102,7 +113,7 @@
       </thead>
       <tbody>
         {% for r in audit_page %}
-          <tr>
+          <tr class="{{ 'missing-row' if r.status == '未填' else '' }}">
             <td>{{ r.name }}</td>
             <td>{{ r.status }}</td>
             <td>{{ r.location or '-' }}</td>
